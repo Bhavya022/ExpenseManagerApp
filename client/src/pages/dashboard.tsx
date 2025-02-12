@@ -45,10 +45,11 @@ import {
   Loader2,
   FileDown,
   Trash2,
+  LogOut,
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
 
   const form = useForm({
@@ -105,12 +106,26 @@ export default function Dashboard() {
     <div className="container mx-auto p-4 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Welcome, {user?.username}</h1>
-        <Button asChild>
-          <Link href="/export">
-            <FileDown className="mr-2 h-4 w-4" />
-            Export to PDF
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/export">
+              <FileDown className="mr-2 h-4 w-4" />
+              Export to PDF
+            </Link>
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => logoutMutation.mutate()}
+            disabled={logoutMutation.isPending}
+          >
+            {logoutMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="mr-2 h-4 w-4" />
+            )}
+            Logout
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
