@@ -8,9 +8,28 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { useState } from "react";
 
+// Define proper types for jsPDF with autoTable
+interface TableData {
+  head: string[][];
+  body: string[][];
+  startY: number;
+  headStyles: { fillColor: number[] };
+  alternateRowStyles: { fillColor: number[] };
+  margin: { top: number };
+  didDrawPage: (data: unknown) => void;
+}
+
 declare module "jspdf" {
   interface jsPDF {
-    autoTable: (options: any) => jsPDF;
+    autoTable: (options: TableData) => jsPDF;
+    internal: {
+      getCurrentPageInfo: () => { pageNumber: number };
+      getNumberOfPages: () => number;
+      pageSize: {
+        getWidth: () => number;
+        getHeight: () => number;
+      };
+    };
   }
 }
 
@@ -76,7 +95,7 @@ export default function ExportPage() {
         headStyles: { fillColor: [66, 66, 66] },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { top: 85 },
-        didDrawPage: (data) => {
+        didDrawPage: () => {
           // Add footer on each page
           const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
           const totalPages = doc.internal.getNumberOfPages();
