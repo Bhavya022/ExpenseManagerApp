@@ -11,5 +11,8 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Use the provided PostgreSQL connection URL
+const DATABASE_URL = "postgres://expense_user:bhavya%4022@localhost:5432/expenseTracker";
+
+export const pool = new Pool({ connectionString: DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
