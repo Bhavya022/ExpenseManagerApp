@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertExpenseSchema } from "@shared/schema";
+import { fromZodError } from "zod-validation-error";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -21,6 +22,7 @@ export function registerRoutes(app: Express): Server {
       const expenses = await storage.getExpenses(req.user!.id);
       res.json(expenses);
     } catch (err) {
+      console.error("Error fetching expenses:", err);
       res.status(500).json({ message: "Failed to fetch expenses" });
     }
   });
@@ -35,7 +37,14 @@ export function registerRoutes(app: Express): Server {
       });
       res.status(201).json(expense);
     } catch (err) {
-      res.status(400).json({ message: "Invalid expense data" });
+      if (err instanceof Error) {
+        res.status(400).json({ 
+          message: "Invalid expense data",
+          details: fromZodError(err).message
+        });
+      } else {
+        res.status(500).json({ message: "Failed to create expense" });
+      }
     }
   });
 
@@ -44,7 +53,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const expenseId = parseInt(req.params.id);
       const expense = await storage.getExpense(expenseId);
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
@@ -56,6 +65,7 @@ export function registerRoutes(app: Express): Server {
       await storage.deleteExpense(expenseId);
       res.sendStatus(200);
     } catch (err) {
+      console.error("Error deleting expense:", err);
       res.status(500).json({ message: "Failed to delete expense" });
     }
   });
@@ -66,6 +76,7 @@ export function registerRoutes(app: Express): Server {
       const expenses = await storage.getExpenses(req.user!.id);
       res.json(expenses); // Frontend will handle PDF generation
     } catch (err) {
+      console.error("Error exporting expenses:", err);
       res.status(500).json({ message: "Failed to export expenses" });
     }
   });

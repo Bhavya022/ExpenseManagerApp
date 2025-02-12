@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -31,7 +31,9 @@ export const insertExpenseSchema = createInsertSchema(expenses)
     type: true,
   })
   .extend({
-    amount: z.number().min(0), // Amount in dollars
+    amount: z.number().min(0).multipleOf(0.01), // Amount in dollars with 2 decimal places
+    category: z.string().min(1, "Category is required"),
+    type: z.enum(["Income", "Expense"]),
   });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
