@@ -4,6 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertExpenseSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { ZodError } from "zod";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -34,15 +35,18 @@ export function registerRoutes(app: Express): Server {
       const expense = await storage.createExpense(req.user!.id, {
         ...data,
         amount: Math.round(data.amount * 100), // Convert to cents
-      });
+        description: data.description ?? null // If undefined, set to null
+      });      
       res.status(201).json(expense);
     } catch (err) {
-      if (err instanceof Error) {
+      // Check if the error is a ZodError
+      if (err instanceof ZodError) {
         res.status(400).json({ 
           message: "Invalid expense data",
           details: fromZodError(err).message
         });
       } else {
+        console.error("Unexpected error:", err);
         res.status(500).json({ message: "Failed to create expense" });
       }
     }
